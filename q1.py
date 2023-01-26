@@ -16,7 +16,7 @@ for i in range(10):
 Q = [0] * 10
 N = [0] * 10
 # Exploration constant
-c = 10
+c = 1
 
 def TryAction(action):
     global numOptimalActionChosen, totalReward
