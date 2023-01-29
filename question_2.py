@@ -3,9 +3,9 @@ import logging
 
 
 # CONSTANTS
-EPOCH_NUM = 50000
-ALPHA = 0.2
-BETA = 0.3
+EPOCH_NUM = 10000
+ALPHA = 0.015
+BETA = 0.01
 
 
 Q_t = np.zeros(10, dtype=np.float64)  # accumulated rewards for each action
@@ -16,8 +16,6 @@ N_t = np.zeros(
 
 # an array of actual probabilities~continuous U(0,1)
 probabilities = np.random.rand(10)
-# cache response based on the probabilities(for fast selection)
-response = (probabilities >= 0.5).astype(np.uint8)
 # the index of action that has the highest prob. of success
 optimal_action = np.argmax(probabilities)
 
@@ -29,7 +27,7 @@ optimal_action = np.argmax(probabilities)
 # initialize the array of probabilities to 0.1
 p_t = np.full((10), fill_value=0.1, dtype=np.float64)
 total_optimal_num = 0  # num. of times the optimal action was taken
-print(p_t, probabilities, response)
+print(p_t, probabilities)
 # a helper variable to cache the indexing for future use
 _indeces = np.arange(0, 10, dtype=np.uint8)
 print(f"{_indeces=}")
@@ -55,12 +53,11 @@ for epoch in range(EPOCH_NUM):
     # update the action counter
     N_t[last_action] += 1
     # update the accumulated reward for that action
-    Q_t[last_action] += (1 / N_t[last_action]) * (last_action - Q_t[last_action])
+    Q_t[last_action] += (1 / N_t[last_action]) * (last_signal - Q_t[last_action])
 
     # set the last action to 1 for future selection
     mask[last_action] = True
-    # breakpoint()
-    last_signal = 0
+
     if last_signal == 1:
         p_t[last_action] += ALPHA * (1 - p_t[last_action])
         p_t[~mask] *= 1 - ALPHA
@@ -77,7 +74,7 @@ for epoch in range(EPOCH_NUM):
     # reset the mask
     mask[:] = 0
 
-    if epoch % 1000 == 0:
+    if epoch % 100 == 0:
         print(f"FOR {epoch=}:\n-----------------")
         print(
             f"the optimal action was taken {total_optimal_num} times={total_optimal_num/EPOCH_NUM*100}%"
@@ -86,3 +83,4 @@ for epoch in range(EPOCH_NUM):
 
 # TODO delete(used only for debugging)
 print(p_t, N_t, Q_t, sep="\n")
+print(f"initial values of {probabilities=}")
