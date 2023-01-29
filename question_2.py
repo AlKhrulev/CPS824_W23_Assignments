@@ -3,8 +3,8 @@ import logging
 
 
 # CONSTANTS
-EPOCH_NUM = 10000
-ALPHA = 0.4
+EPOCH_NUM = 50000
+ALPHA = 0.2
 BETA = 0.3
 
 
@@ -44,7 +44,10 @@ for epoch in range(EPOCH_NUM):
     last_action = np.random.choice(np.arange(0, 10), p=p_t)
     # last_action=np.random.choice(np.arange(10))
     # print(f'last action is {last_action=}')
-    last_signal = response[last_action]
+    # generate a signal based on the q_t
+    last_signal = np.random.choice(
+        [1, 0], p=[probabilities[last_action], 1 - probabilities[last_action]]
+    )
 
     # modify total optimal number if the last action was indeed optimal
     total_optimal_num += optimal_action == last_action
@@ -74,8 +77,7 @@ for epoch in range(EPOCH_NUM):
     # reset the mask
     mask[:] = 0
 
-    # if epoch % 100 == 0:
-    if epoch == (EPOCH_NUM - 1):
+    if epoch % 1000 == 0:
         print(f"FOR {epoch=}:\n-----------------")
         print(
             f"the optimal action was taken {total_optimal_num} times={total_optimal_num/EPOCH_NUM*100}%"
@@ -83,4 +85,4 @@ for epoch in range(EPOCH_NUM):
         print(f"the average reward is {Q_t}\n\n")
 
 # TODO delete(used only for debugging)
-# print(p_t, N_t, Q_t, sep="\n")
+print(p_t, N_t, Q_t, sep="\n")
