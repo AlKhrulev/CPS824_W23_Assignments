@@ -54,4 +54,4 @@ for epoch in range(0,100):
 
 # print("true value", q, "\nagent estimate", Q)
 # print(results[0],results[50],results[99])
-np.savetxt("results.csv", results, delimiter=",")
+# np.savetxt("results.csv", results, delimiter=",")
