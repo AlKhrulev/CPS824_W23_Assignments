@@ -1,3 +1,5 @@
+# Contributors: Alexander Khrulev 500882732
+# Mahan Pandey 500881861
 from __future__ import annotations #used for type hints
 import numpy as np
 
