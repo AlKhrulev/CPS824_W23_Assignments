@@ -19,6 +19,15 @@ def printState(s):
             print(" % 2.2f|" % s[x + y * 4], end='')
         print()
 
+def printPi(Pi):
+    for y in range(4):
+        for x in range(4):
+            optimalAction = np.argmax(Pi[x + y * 4])
+            # print(str(actionDirection[optimalAction]) + "|", end='')
+            print(str(Pi[x + y * 4]) + "|", end='')
+
+        print()
+
 # States
 #    +---+---+---+---+
 #    | 0 | 1 | 2 | 3 |
@@ -107,21 +116,61 @@ for s in range(16):
 
 Vnexts = np.zeros(16)
 
-# Policy Evaluation
-for n in range(100):
+# Policy iteration
+for epoch in range(100):
+
+    # Policy Evaluation
+    for n in range(1000):
+        delta = 0
+        for i in range(16):
+            lastV = V[i]
+            # For each state sum expected reward of all possible actions
+            nextV = 0
+            for a in range(4):
+                actionReward = 0
+                # For each action sum expected reward of all possible (next state, reward) pairs
+                for j in range(16):
+                    actionReward += Pr[i][a][j] * (R[j] + gamma * V[j])
+                nextV += Pi[s][a] * actionReward
+            Vnexts[i] = nextV
+            delta = max(delta, abs(nextV - lastV))
+        
+        V = np.copy(Vnexts)
+        if(delta < theta):
+            break
+
+    print("Policy evaluation", epoch)
+    printState(V)
+
+    print("Old Pi", epoch)
+    printPi(Pi)
+
+    # Policy Improvement
+    policyStable = True
     for i in range(16):
-        # For each state sum expected reward of all possible actions
-        nextV = 0
+        oldMaxAction = np.argmax(Pi[i])
+        maxAction = 0
+        maxReward = float('-inf')
+        # For each state find action that maximizes expected reward
         for a in range(4):
+            actionReward = 0
             # For each action sum expected reward of all possible (next state, reward) pairs
             for j in range(16):
-                nextV += Pr[i][a][j] * (R[j] + gamma * V[j])
-        Vnexts[i] = nextV
-    
-    V = np.copy(Vnexts)
-    print(n)
-    printState(Vnexts)
+                actionReward += Pr[i][a][j] * (R[j] + gamma * V[j])
+            if actionReward > maxReward:
+                maxReward = actionReward
+                maxAction = a
 
-# V[s] = 
-# Sum for each action a: Pr(a|s) *
-# Sum for each (next state, reward): Pr( |s,a) * [immediate reward + gamma*V[s]]
+        if maxAction != oldMaxAction:
+            policyStable = False
+
+        # TODO: increase optimal action probability instead of setting it deterministically
+        newOptimalAction = np.zeros((4))
+        newOptimalAction[maxAction] = 1
+        Pi[i] = newOptimalAction
+
+    print("new Pi", epoch, policyStable)
+    printPi(Pi)
+    if policyStable:
+        break
+
