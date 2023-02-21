@@ -227,7 +227,7 @@ while(True):
         # For max action sum expected reward of all possible (next state, reward) pairs
         for j in range(16):
             actionReward += Pr[i][maxAction][j] * (R[j] + gamma * V[j])
-        Vnexts[i] = Pi[i][maxAction] * actionReward
+        Vnexts[i] = actionReward
 
         delta = max(delta, abs(Vnexts[i] - V[i]))
 
