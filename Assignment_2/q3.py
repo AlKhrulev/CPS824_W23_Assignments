@@ -23,8 +23,8 @@ def printPi(Pi):
     for y in range(4):
         for x in range(4):
             optimalAction = np.argmax(Pi[x + y * 4])
-            # print(str(actionDirection[optimalAction]) + "|", end='')
-            print(str(Pi[x + y * 4]) + "|", end='')
+            print(str(actionDirection[optimalAction]) + "|", end='')
+            # print(str(Pi[x + y * 4]) + "|", end='')
 
         print()
 
@@ -131,7 +131,7 @@ for epoch in range(100):
                 # For each action sum expected reward of all possible (next state, reward) pairs
                 for j in range(16):
                     actionReward += Pr[i][a][j] * (R[j] + gamma * V[j])
-                nextV += Pi[s][a] * actionReward
+                nextV += Pi[i][a] * actionReward
             Vnexts[i] = nextV
             delta = max(delta, abs(nextV - lastV))
         
@@ -164,10 +164,17 @@ for epoch in range(100):
         if maxAction != oldMaxAction:
             policyStable = False
 
-        # TODO: increase optimal action probability instead of setting it deterministically
-        newOptimalAction = np.zeros((4))
-        newOptimalAction[maxAction] = 1
-        Pi[i] = newOptimalAction
+        newPi = np.zeros((4))
+        optimalActionIncrease = 0
+        # Decrease non optimal actions by half
+        for a in range(4):
+            if(a != maxAction):
+                newPi[a] = Pi[i][a] / 2
+                optimalActionIncrease +=  Pi[i][a] / 2
+        # Increase optimal action 
+        newPi[maxAction] = Pi[i][maxAction] + optimalActionIncrease
+        # print(np.sum(Pi[i]), Pi[i], newPi)
+        Pi[i] = newPi
 
     print("new Pi", epoch, policyStable)
     printPi(Pi)
