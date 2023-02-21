@@ -1,3 +1,6 @@
+# Alexander Khrulev 500882732
+# Mahan Pandey 500881861
+
 import numpy as np
 from numpy import random
 
@@ -22,9 +25,13 @@ def printState(s):
 def printPi(Pi):
     for y in range(4):
         for x in range(4):
-            optimalAction = np.argmax(Pi[x + y * 4])
-            print(str(actionDirection[optimalAction]) + "|", end='')
-            # print(str(Pi[x + y * 4]) + "|", end='')
+            ind = x + y * 4
+            optimalAction = np.argmax(Pi[ind])
+            if(ind == 0 or ind == 15):
+                print("   x   |", end='')
+            else:
+                print(str(actionDirection[optimalAction]) + "|", end='')
+                # print(str(Pi[x + y * 4]) + "|", end='')
 
         print()
 
@@ -46,12 +53,13 @@ gamma = 0.95
 theta = 0.001
 
 # Rewards R is -1 on all transitions until the terminal state is reached, 0 for terminal state
-R = np.ones((16)) * -1
-R[0] = 0
-R[15] = 0
+R = np.ones((4)) * -1
 
-# Init V(s) with 0
-V = np.zeros((16))
+def getReward(s, a):
+    if(s == 0 or s == 15):
+        return 0
+    else:
+        return R[a]
 
 # Actions A = [up, down, left, right]
 actionDirection = [(0,-1), (0,1), (-1, 0), (1, 0)]
@@ -113,131 +121,3 @@ for s in range(16):
                     Pr[s][a][s] += adjacentPr
         # print(s, actionDirection[a])
         # printState(Pr[s][a])
-
-# Vnexts = np.zeros(16)
-# epoch = 0
-# # Policy iteration
-# while(True):
-#     epoch += 1
-#     # Policy Evaluation
-#     while(True):
-#         delta = 0
-#         for i in range(16):
-#             lastV = V[i]
-#             # For each state sum expected reward of all possible actions
-#             nextV = 0
-#             for a in range(4):
-#                 actionReward = 0
-#                 # For each action sum expected reward of all possible (next state, reward) pairs
-#                 for j in range(16):
-#                     actionReward += Pr[i][a][j] * (R[j] + gamma * V[j])
-#                 nextV += Pi[i][a] * actionReward
-#             Vnexts[i] = nextV
-#             delta = max(delta, abs(nextV - lastV))
-        
-#         V = np.copy(Vnexts)
-#         if(delta < theta):
-#             break
-
-#     print("Policy evaluation", epoch)
-#     printState(V)
-
-#     print("Old Pi", epoch)
-#     printPi(Pi)
-
-#     # Policy Improvement
-#     policyStable = True
-#     for i in range(16):
-#         oldMaxAction = np.argmax(Pi[i])
-#         maxAction = 0
-#         maxReward = float('-inf')
-#         # For each state find action that maximizes expected reward
-#         for a in range(4):
-#             actionReward = 0
-#             # For each action sum expected reward of all possible (next state, reward) pairs
-#             for j in range(16):
-#                 actionReward += Pr[i][a][j] * (R[j] + gamma * V[j])
-#             if actionReward > maxReward:
-#                 maxReward = actionReward
-#                 maxAction = a
-
-#         if maxAction != oldMaxAction:
-#             policyStable = False
-
-#         newPi = np.zeros((4))
-#         optimalActionIncrease = 0
-#         # Decrease non optimal actions by half
-#         for a in range(4):
-#             if(a != maxAction):
-#                 newPi[a] = Pi[i][a] / 2
-#                 optimalActionIncrease +=  Pi[i][a] / 2
-#         # Increase optimal action 
-#         newPi[maxAction] = Pi[i][maxAction] + optimalActionIncrease
-#         # print(np.sum(Pi[i]), Pi[i], newPi)
-#         Pi[i] = newPi
-
-#     print("new Pi", epoch, policyStable)
-#     printPi(Pi)
-#     if policyStable:
-#         break
-
-
-
-
-# Value iteration
-# Instead of waiting for policy evaluation to converge 
-# Find action that maximizes reward in next step
-# Update policy evaluation based on best max action
-Vnexts = np.zeros(16)
-epoch = 0
-while(True):
-    epoch += 1
-    delta = 0
-    for i in range(16):
-        oldMaxAction = np.argmax(Pi[i])
-        maxAction = 0
-        maxReward = float('-inf')
-        # For each state find action that maximizes expected reward
-        for a in range(4):
-            actionReward = 0
-            # For each action sum expected reward of all possible (next state, reward) pairs
-            for j in range(16):
-                actionReward += Pr[i][a][j] * (R[j] + gamma * V[j])
-            if actionReward > maxReward:
-                maxReward = actionReward
-                maxAction = a
-
-        if maxAction != oldMaxAction:
-            policyStable = False
-
-        newPi = np.zeros((4))
-        optimalActionIncrease = 0
-        # Decrease non optimal actions by half
-        for a in range(4):
-            if(a != maxAction):
-                newPi[a] = Pi[i][a] / 2
-                optimalActionIncrease +=  Pi[i][a] / 2
-        # Increase optimal action 
-        newPi[maxAction] = Pi[i][maxAction] + optimalActionIncrease
-        # print(np.sum(Pi[i]), Pi[i], newPi)
-        Pi[i] = newPi
-
-        # Single sweep policy evaluation
-        actionReward = 0
-        # For max action sum expected reward of all possible (next state, reward) pairs
-        for j in range(16):
-            actionReward += Pr[i][maxAction][j] * (R[j] + gamma * V[j])
-        Vnexts[i] = actionReward
-
-        delta = max(delta, abs(Vnexts[i] - V[i]))
-
-    V = np.copy(Vnexts)
-
-    print("Pi", epoch)
-    printPi(Pi)
-
-    print("Policy evaluation", epoch, delta)
-    printState(V)
-
-    if(delta < theta):
-        break
