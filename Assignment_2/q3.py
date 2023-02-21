@@ -116,11 +116,12 @@ for s in range(16):
 
 Vnexts = np.zeros(16)
 
+epoch = 0
 # Policy iteration
-for epoch in range(100):
-
+while(True):
+    epoch += 1
     # Policy Evaluation
-    for n in range(1000):
+    while(True):
         delta = 0
         for i in range(16):
             lastV = V[i]
@@ -181,3 +182,5 @@ for epoch in range(100):
     if policyStable:
         break
 
+# Value iteration
+# Instead of waiting for policy evaluation to converge 
