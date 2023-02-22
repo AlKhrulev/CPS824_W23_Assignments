@@ -4,15 +4,13 @@
 from q3 import *
 import time
 
-# Value iteration
-# Instead of waiting for policy evaluation to converge 
-# Find action that maximizes reward in next step
-# Update policy evaluation based on best max action
 # Init V(s) with 0
 V = np.zeros((16))
 Vnexts = np.zeros(16)
 epoch = 0
 totalTimeStart = time.time()
+
+# Value iteration with truncated policy evaluation
 while(True):
     startTime = time.time()
     epoch += 1
@@ -43,7 +41,6 @@ while(True):
                 optimalActionIncrease +=  Pi[i][a] / 2
         # Increase optimal action 
         newPi[maxAction] = Pi[i][maxAction] + optimalActionIncrease
-        # print(np.sum(Pi[i]), Pi[i], newPi)
         Pi[i] = newPi
 
         # Single sweep policy evaluation = action reward of max action
@@ -52,12 +49,6 @@ while(True):
         delta = max(delta, abs(Vnexts[i] - V[i]))
 
     V = np.copy(Vnexts)
-
-    # print("Pi", epoch)
-    # printPi(Pi)
-
-    # print("Policy evaluation", epoch, delta)
-    # printState(V)
 
     print(f"Iteration {epoch} took {(time.time() - startTime)*1000}ms")
 

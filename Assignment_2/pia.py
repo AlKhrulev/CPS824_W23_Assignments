@@ -33,12 +33,6 @@ while(True):
         if(delta < theta):
             break
 
-    # print("Policy evaluation", epoch)
-    # printState(V)
-
-    # print("Old Pi", epoch)
-    # printPi(Pi)
-
     # Policy Improvement
     policyStable = True
     for i in range(16):
@@ -67,11 +61,7 @@ while(True):
                 optimalActionIncrease +=  Pi[i][a] / 2
         # Increase optimal action 
         newPi[maxAction] = Pi[i][maxAction] + optimalActionIncrease
-        # print(np.sum(Pi[i]), Pi[i], newPi)
         Pi[i] = newPi
-
-    # print("new Pi", epoch, policyStable)
-    # printPi(Pi)
 
     print(f"Iteration {epoch} took {(time.time() - startTime)*1000}ms")
 

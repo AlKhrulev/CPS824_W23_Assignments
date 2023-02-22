@@ -23,14 +23,16 @@ def printState(s):
         print()
 
 def printPi(Pi):
+    arctionArrow = [" ↑ ", " ↓ ", " ← ", " → "]
     for y in range(4):
         for x in range(4):
             ind = x + y * 4
             optimalAction = np.argmax(Pi[ind])
             if(ind == 0 or ind == 15):
-                print("   x   |", end='')
+                print(" x |", end='')
             else:
-                print(str(actionDirection[optimalAction]) + "|", end='')
+                # print(str(actionDirection[optimalAction]) + "|", end='')
+                print(arctionArrow[optimalAction] + "|", end='')
                 # print(str(Pi[x + y * 4]) + "|", end='')
 
         print()
@@ -47,13 +49,19 @@ def printPi(Pi):
 #    +---+---+---+---+
 # 0 & 15 are terminal state
 
-p1 = 0.8
-p2 = 0.1
-gamma = 0.95
-theta = 0.001
+# p1 = 0.8
+# p2 = 0.1
+# gamma = 0.95
+# theta = 0.001
+
+p1 = float(input("Input p1: "))
+p2 = float(input("Input p2: "))
+gamma = float(input("Input gamma: "))
+theta = float(input("Input theta: "))
 
 # Rewards R is -1 on all transitions until the terminal state is reached, 0 for terminal state
-R = np.ones((4)) * -1
+# R = np.ones((4)) * -1
+R = [float(input("r(up): ")), float(input("r(down): ")),float(input("r(left): ")),float(input("r(right): "))]
 
 def getReward(s, a):
     if(s == 0 or s == 15):
