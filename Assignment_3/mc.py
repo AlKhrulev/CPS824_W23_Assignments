@@ -111,8 +111,8 @@ def interactEnvironment(s, a):
     keys = list(Pr.keys())
     choice = np.random.choice(len(keys), 1, p=list(Pr.values()))[0]
     nextState = keys[choice]
-    # reward = nextState
-    return nextState
+    reward = 100 if (nextState[0] == 9 and nextState[1] == 0) else -1
+    return (nextState, reward)
 
 print(interactEnvironment((5,4), 0))
 print(interactEnvironment((5,4), 1))
@@ -122,3 +122,4 @@ print(interactEnvironment((2,2), 0))
 print(interactEnvironment((2,2), 1))
 print(interactEnvironment((2,2), 2))
 print(interactEnvironment((2,2), 3))
+print(interactEnvironment((9,1), 0))
