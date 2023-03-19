@@ -1,8 +1,13 @@
 import numpy as np
 from numpy import random
 
-# 10x10 grid world
+p1 = 0.8
+p2 = 0.1
 
+gamma = 0.9
+epsilon = 0.1
+
+# 10x10 grid world
 # store barriers in separate arrays for each axis
 # horizontalBarriers 11x10
 horizontalBarriers =   [[1,1,1,1,1,1,1,1,1,1],
@@ -29,13 +34,6 @@ verticalBarriers =     [[1,0,0,0,0,1,0,0,0,0,1],
                         [1,0,0,0,0,1,0,0,0,0,1],
                         [1,0,0,0,0,1,0,0,0,0,1]]
 
-p1 = 0.8
-p2 = 0.1
-
-gamma = 0.9
-
-Pi = [0.25, 0.25, 0.25, 0.25]
-
 # Actions A = [up, down, left, right]
 actionDirection = [(0,-1), (0,1), (-1, 0), (1, 0)]
 # Adjacent cells for each action
@@ -43,6 +41,39 @@ adjacentOffset = [[2, 3], [2, 3], [0, 1], [0, 1]]
 
 def addTuples(t1, t2):
     return (t1[0] + t2[0], t1[1] + t2[1])
+
+def printActionValue(Q):
+    for a in range(4):
+        print(f"Action: {a}")
+        for y in range(10):
+            for x in range(10):
+                # print("(%2d" % (x + y*4) + ", %.2f" % s[x + y * 4] + ")", end='')
+                print("| % 3.2f" % Q[x][y][a], end='')
+            print()
+
+def printC(C):
+    for a in range(4):
+        print(f"Action: {a}")
+        for y in range(10):
+            for x in range(10):
+                # print("(%2d" % (x + y*4) + ", %.2f" % s[x + y * 4] + ")", end='')
+                print("| % 3.0f" % C[x][y][a], end='')
+            print()
+
+def printPi(Pi):
+    arctionArrow = [" ↑ ", " ↓ ", " ← ", " → "]
+    for y in range(10):
+        for x in range(10):
+            optimalAction = np.argmax(Pi[x][y])
+            if(x == 9 and y == 0):
+                print(" x |", end='')
+            else:
+                # print(str(actionDirection[optimalAction]) + "|", end='')
+                print(arctionArrow[optimalAction] + "|", end='')
+                # print("%.2f" % Pi[x][y][optimalAction] + "|", end='')
+                # print("%.2f" % Pi[x][y][0] + " %.2f" % Pi[x][y][1] + " %.2f" % Pi[x][y][2] + " %.2f" % Pi[x][y][3]+ "|", end='')
+
+        print()
 
 # return if action at state is valid, i.e. will it collide with the walls
 def canMove(state, actionDirection):
@@ -119,22 +150,39 @@ def interactEnvironment(s, a):
     reward = 100 if (nextState[0] == 9 and nextState[1] == 0) else -1
     return (nextState, reward)
 
-# V average first time visit return
-V = {}
-# C count of fist time visits to state
-C = {}
+def maxAction(Q, s):
+    sx = s[0]
+    sy = s[1]
+    actionValues = [Q[sx][sy][0], Q[sx][sy][1], Q[sx][sy][2], Q[sx][sy][3]]
+    return np.argmax(actionValues) 
 
-for i in range(100):
+# epsilon-soft
+def chooseEGreedyAction(Pi, s):
+    if random.rand() < epsilon:
+        return random.randint(4)
+    else:
+        return random.choice(4, 1, p=Pi)[0]
+
+# Policy
+Pi = np.ones((10,10,4)) * 0.25
+
+# average first time visit return for action
+Q = np.zeros((10,10,4))
+
+# C count of fist time visits to state
+C = np.zeros((10,10,4))
+
+for i in range(30000):
     states = []
     actions = []
     rewards = []
 
     # Generate episode
-    randPos = random.choice(9, 2)
+    randPos = random.randint(0, 10, 2)
     s = (randPos[0], randPos[1])
+    # First action arbritrary
+    a = random.randint(4)
     while True:
-        # Pick action according to Pi
-        a = random.choice(4, 1, p=Pi)[0]
         env = interactEnvironment(s, a)
         reward = env[1]
         states.append(s)
@@ -142,6 +190,8 @@ for i in range(100):
         rewards.append(reward)
         # print("State", s, "Action", a,"Reward:", reward)
         s = env[0]
+        # Pick action according to Pi
+        a = chooseEGreedyAction(Pi[s[0]][s[1]], s)
 
         # terminate on terminal state
         if reward == 100:
@@ -154,18 +204,33 @@ for i in range(100):
     for i in range(len(states)):
         ind = len(states) - (i + 1)
         s = states[ind]
+        sx = s[0]
+        sy = s[1]
         a = actions[ind]
         r = rewards[ind]
         G = gamma * G + r
-        # print(s, a, r, G)
-        if not (s in Visited):
-            Visited[s] = True
-            if(s in V):
-                C[s] = C[s] + 1
-                # Running average of first visit returns
-                V[s] = V[s] + 1 / C[s] * (G - V[s])
-            else:
-                V[s] = G
-                C[s] = 1
+        sa = (s, a)
+        # Check if first time visit
+        if not (sa in Visited):
+            Visited[sa] = True
+            C[sx][sy][a] += 1
+            # Running average of first visit returns
+            Q[sx][sy][a] = Q[sx][sy][a] + 1 / C[sx][sy][a] * (G - Q[sx][sy][a])
+        
+            oldPi = Pi[sx][sy]
+            newPi = np.zeros((4))
+            maxA = maxAction(Q, s)
+            optimalActionIncrease = 0
+            # Decrease non optimal actions by half
+            for a in range(4):
+                if(a != maxA):
+                    newPi[a] = oldPi[a] / 2
+                    optimalActionIncrease +=  oldPi[a] / 2
+            # Increase optimal action
+            newPi[maxA] = oldPi[maxA] + optimalActionIncrease
+          
+            Pi[sx][sy] = newPi
 
-print(V[(8,0)])
+printPi(Pi)
+# printActionValue(Q)
+# printC(C)
