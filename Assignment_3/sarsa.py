@@ -115,7 +115,7 @@ def interactEnvironment(s, a):
         else:
             # if adjacent not within bounds, probability of staying at s higher
             Pr[s] += adjacentPr
-    print("Next state probabilities", Pr)
+    # print("Next state probabilities", Pr)
 
     # Pick a next state from Pr
     keys = list(Pr.keys())
@@ -134,14 +134,31 @@ def select_action(current_state_Q, epsilon: float) -> Literal[0, 1, 2, 3]:
 
     # if randomly generated number is less than epsilon,
     # do a random action
-    print(f"{current_state_Q=}")
+    assert len(current_state_Q)==4
     if np.random.rand() < epsilon:
-        print("in epsilon")
-        return np.random.randint(0, 5)
+        # print("in epsilon")
+        return np.random.randint(0, 4)
 
     # otherwise, return the action that maximizes Q at the current state
-    print("in argmax")
+    # print("in argmax")
     return np.argmax(current_state_Q)
+
+def _visualize_Q(Q,explored_states):
+    # Q_copy=Q.copy()
+    # mask = np.zeros(Q_copy.size, dtype=bool)
+    # mask[list(explored_states)] = True
+    # Q_copy[~mask]=1_000_000
+
+    action_icons=("↑","↓","←","→","x")
+    maximizing_actions=np.argmax(Q,axis=2)
+    pretty_print=np.zeros_like(maximizing_actions,dtype=np.object_)
+    pretty_print[maximizing_actions==0]=action_icons[0]
+    pretty_print[maximizing_actions==1]=action_icons[1]
+    pretty_print[maximizing_actions==2]=action_icons[2]
+    pretty_print[maximizing_actions==3]=action_icons[3]
+    # pretty_print[maximizing_actions==1_000_000]=action_icons[4]
+    # print(np.argmax(Q,axis=2))
+    print(pretty_print)
 
 
 if __name__ == "__main__":
@@ -150,23 +167,27 @@ if __name__ == "__main__":
     # the exploration constant
     EPSILON: final[float] = 0.1
     # the learning rate
-    ALPHA: final[float] = 0.3
+    ALPHA: final[float] = 0.1
     # the discount constant
-    GAMMA: final[float] = 0.3
+    GAMMA: final[float] = 0.9
     # the number of episodes to run
-    TOTAL_EPISODE_NUMBER: final[int] = 1
+    TOTAL_EPISODE_NUMBER: final[int] = 15
     Q = np.zeros((10, 10, 4), dtype=np.float64)
-
+    explored_states:set=set()
     for episode_number in range(TOTAL_EPISODE_NUMBER):
         # generate a random initial state as a tuple of r.v. from
         # 0 to 9
         current_state = tuple(np.random.randint(low=0, high=10, size=2))
-        print(current_state, type(current_state))
+        print(f'the initial state is {current_state}')
         current_action: Literal[0, 1, 2, 3] = select_action(Q[current_state], EPSILON)
-        print(f"{current_action=}")
+        print(f"the first action is {current_action}")
 
+        loop_num=0
         while current_state != TERMINAL_STATE:
-            print("debug")
+            # add a state to the set of explored states
+            explored_states.add(current_state)
+
+            # print(f"debug for {loop_num=}")
             next_state: tuple[int, int]
             immediate_reward: Literal[-1, 100]  # the immed. reward is either -1 or 100
             # find the next state
@@ -175,8 +196,8 @@ if __name__ == "__main__":
             )
 
             # choose A' from S' using policy derrived from Q
-            next_action: Literal[0, 1, 2, 3] = select_action(Q[next_state[0]], EPSILON)
-            print(f"{next_action=},{next_state=}")
+            next_action: Literal[0, 1, 2, 3] = select_action(Q[next_state], EPSILON)
+            # print(f"{next_action=},{next_state=}")
             # update Q
             Q[current_state][current_action] = Q[current_state][
                 current_action
@@ -187,3 +208,9 @@ if __name__ == "__main__":
             )
             # update actions and a state
             current_action, current_state = next_action, next_state
+            loop_num+=1
+
+        print(f'it took {loop_num} loops for {episode_number=}')
+    print(Q)
+    print(_visualize_Q(Q, explored_states))
+    print(explored_states)
