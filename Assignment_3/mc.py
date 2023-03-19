@@ -1,4 +1,5 @@
 import numpy as np
+from numpy import random
 
 # 10x10 grid world
 
@@ -30,6 +31,10 @@ verticalBarriers =     [[1,0,0,0,0,1,0,0,0,0,1],
 
 p1 = 0.8
 p2 = 0.1
+
+gamma = 0.9
+
+Pi = [0.25, 0.25, 0.25, 0.25]
 
 # Actions A = [up, down, left, right]
 actionDirection = [(0,-1), (0,1), (-1, 0), (1, 0)]
@@ -105,21 +110,62 @@ def interactEnvironment(s, a):
         else:
             # if adjacent not within bounds, probability of staying at s higher
             Pr[s] += adjacentPr
-    print("Next state probabilities", Pr)
+    # print("Next state probabilities", Pr)
 
     # Pick a next state from Pr
     keys = list(Pr.keys())
-    choice = np.random.choice(len(keys), 1, p=list(Pr.values()))[0]
+    choice = random.choice(len(keys), 1, p=list(Pr.values()))[0]
     nextState = keys[choice]
     reward = 100 if (nextState[0] == 9 and nextState[1] == 0) else -1
     return (nextState, reward)
 
-print(interactEnvironment((5,4), 0))
-print(interactEnvironment((5,4), 1))
-print(interactEnvironment((5,4), 2))
-print(interactEnvironment((5,4), 3))
-print(interactEnvironment((2,2), 0))
-print(interactEnvironment((2,2), 1))
-print(interactEnvironment((2,2), 2))
-print(interactEnvironment((2,2), 3))
-print(interactEnvironment((9,1), 0))
+# V average first time visit return
+V = {}
+# C count of fist time visits to state
+C = {}
+
+for i in range(100):
+    states = []
+    actions = []
+    rewards = []
+
+    # Generate episode
+    randPos = random.choice(9, 2)
+    s = (randPos[0], randPos[1])
+    while True:
+        # Pick action according to Pi
+        a = random.choice(4, 1, p=Pi)[0]
+        env = interactEnvironment(s, a)
+        reward = env[1]
+        states.append(s)
+        actions.append(a)
+        rewards.append(reward)
+        # print("State", s, "Action", a,"Reward:", reward)
+        s = env[0]
+
+        # terminate on terminal state
+        if reward == 100:
+            break
+
+    # Dictionary of visited states
+    Visited = {}
+    G = 0
+    # Iterate through episode
+    for i in range(len(states)):
+        ind = len(states) - (i + 1)
+        s = states[ind]
+        a = actions[ind]
+        r = rewards[ind]
+        G = gamma * G + r
+        # print(s, a, r, G)
+        if not (s in Visited):
+            Visited[s] = True
+            if(s in V):
+                C[s] = C[s] + 1
+                # Running average of first visit returns
+                V[s] = V[s] + 1 / C[s] * (G - V[s])
+            else:
+                V[s] = G
+                C[s] = 1
+
+print(V[(8,0)])
