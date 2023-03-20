@@ -2,8 +2,8 @@ import numpy as np
 from numpy import random
 from time import perf_counter
 
-p1 = 0.8
-p2 = 0.1
+p1 = 1
+p2 = 0
 
 gamma = 0.9
 epsilon = 0.1
