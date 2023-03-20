@@ -1,3 +1,6 @@
+# Alexander Khrulev 500882732
+# Mahan Pandey 500881861
+
 import numpy as np
 from numpy import random
 from time import perf_counter
