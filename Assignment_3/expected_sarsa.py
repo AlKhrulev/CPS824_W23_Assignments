@@ -171,6 +171,30 @@ def _visualize_Q(Q, terminal_state):
     print(pretty_print.T)
 
 
+def generate_a_random_policy_per_state(
+    grid_size: tuple[int, int] = (10, 10), action_number: int = 4, uniform: bool = False
+):
+    """
+    Generates a random policy for each state. Uses Dirichlet dist. to ensure that
+    probabilities for each action per every state sum up to 1.
+    See https://stackoverflow.com/a/18662466 for more info.
+    Can make a uniform policy for each state-action pair(ex., 25% per action if 4 actions)
+    when uniform=True. Otherwise, uses Dirichlet dist.
+    """
+    # if want to have the same prob for each action in each state
+    if uniform:
+        return np.full(
+            shape=(*grid_size, action_number),
+            fill_value=1 / action_number,
+            # fill_value=[0.4,0.1,0.1,0.4],
+            dtype=np.float64,
+        )
+
+    # otherwise, just make the array s.t. the sum of prob. of each action for each state
+    # sums up to 1 via Dirichlet
+    return np.random.dirichlet(np.ones(action_number), size=(10, 10))
+
+
 if __name__ == "__main__":
     """
     IMPORTANT: with this implementation, the terminal state ends up being (9,0)
@@ -193,12 +217,14 @@ if __name__ == "__main__":
     # the discount constant
     GAMMA: final[float] = 0.9
     # the number of episodes to run
-    TOTAL_EPISODE_NUMBER: final[int] = 5000
+    TOTAL_EPISODE_NUMBER: final[int] = 20000
     # the state-value function estimate array
     Q = np.zeros((10, 10, 4), dtype=np.float64)
+    # generate an array of random policies
     start_time = perf_counter()
 
     for episode_number in range(TOTAL_EPISODE_NUMBER):
+        random_policy = generate_a_random_policy_per_state(uniform=False)
         # generate a random initial state as a tuple of r.v. from
         # 0 to 9
         current_state = tuple(np.random.randint(low=0, high=10, size=2))
@@ -224,12 +250,17 @@ if __name__ == "__main__":
                 Q[next_state], EPSILON
             )
             # print(f"{next_action=},{next_state=}")
+            # can use the dot product to obtain the expected value of
+            # the Q for the next state, as essentially
+            # np.dot(Q[next_state],random_policy[next_state])==
+            # Q[next_state][0]*pi[next_state][0]+...
+            # +Q[next_state][3]*pi[next_state][3]
             # update Q
             Q[current_state][current_action] = Q[current_state][
                 current_action
             ] + ALPHA * (
                 immediate_reward
-                + GAMMA * Q[next_state][next_action]
+                + GAMMA * np.dot(Q[next_state], random_policy[next_state])
                 - Q[current_state][current_action]
             )
             # update current action and a state
@@ -245,3 +276,4 @@ if __name__ == "__main__":
 
     # Consider manually transposing Q here to aligh it with the image in the assigment for good
     # Q=Q.T
+    # https://jochemsoons.medium.com/a-comparison-between-sarsa-and-expected-sarsa-66b931202c75
