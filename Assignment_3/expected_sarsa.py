@@ -163,19 +163,19 @@ def _visualize_Q(Q, terminal_state):
 
     # Need to transpose both arrays to have the
     # terminal state in the right most corner.
-    print("The maximum state-action values for each state:")
+    # print("The maximum state-action values for each state:")
     # the maximum state-action values for each state
-    print(np.max(Q, axis=2).T)
-    print("The actions that maximize state-action values:")
+    # print(np.max(Q, axis=2).T)
+    print("The optimal policy is")
     # the actions that maximize state-action values
     print(pretty_print.T)
 
 
-def generate_a_random_policy_per_state(
+def generate_a_random_policy(
     grid_size: tuple[int, int] = (10, 10), action_number: int = 4, uniform: bool = False
 ):
     """
-    Generates a random policy for each state. Uses Dirichlet dist. to ensure that
+    Generates a random policy. Uses Dirichlet dist. to ensure that
     probabilities for each action per every state sum up to 1.
     See https://stackoverflow.com/a/18662466 for more info.
     Can make a uniform policy for each state-action pair(ex., 25% per action if 4 actions)
@@ -193,6 +193,14 @@ def generate_a_random_policy_per_state(
     # otherwise, just make the array s.t. the sum of prob. of each action for each state
     # sums up to 1 via Dirichlet
     return np.random.dirichlet(np.ones(action_number), size=(10, 10))
+
+def update_policy_for_a_state(current_state_Q):
+    """
+    A function that updates the policy for the current state(after its' state-value
+    function estimate Q has been updated).
+    """
+    maximizing_action=np.argmax(current_state_Q)
+
 
 
 if __name__ == "__main__":
@@ -217,14 +225,17 @@ if __name__ == "__main__":
     # the discount constant
     GAMMA: final[float] = 0.9
     # the number of episodes to run
-    TOTAL_EPISODE_NUMBER: final[int] = 20000
+    TOTAL_EPISODE_NUMBER: final[int] = 2000
     # the state-value function estimate array
     Q = np.zeros((10, 10, 4), dtype=np.float64)
     # generate an array of random policies
     start_time = perf_counter()
+    loop_num = 0
+    # create a uniform initial random policy
+    random_policy=np.full(shape=(10, 10, 4), fill_value=0.25, dtype=np.float64)
+    _mask=np.ones(4,dtype=bool) # a boolean mask for updating the random policy
 
     for episode_number in range(TOTAL_EPISODE_NUMBER):
-        random_policy = generate_a_random_policy_per_state(uniform=False)
         # generate a random initial state as a tuple of r.v. from
         # 0 to 9
         current_state = tuple(np.random.randint(low=0, high=10, size=2))
@@ -234,7 +245,6 @@ if __name__ == "__main__":
         )
         print(f"the first action is {current_action}")
 
-        loop_num = 0
         while current_state != TERMINAL_STATE:
             # add a state to the set of explored states
             # print(f"debug for {loop_num=}")
@@ -263,17 +273,31 @@ if __name__ == "__main__":
                 + GAMMA * np.dot(Q[next_state], random_policy[next_state])
                 - Q[current_state][current_action]
             )
+
+            # update the policy for the state that you just left
+            # select the maximizing action index and update it's probability
+            maximizing_action_for_current_state=np.argmax(Q[current_state])
+            random_policy[current_state][maximizing_action_for_current_state]=1-EPSILON+EPSILON/4
+
+            # update the probabilities of other actions
+            _mask[maximizing_action_for_current_state]=False
+            random_policy[current_state][_mask]=EPSILON/4
+            # restore the mask
+            _mask[:]=True
+
             # update current action and a state
             current_action, current_state = next_action, next_state
             loop_num += 1
 
-        print(f"it took {loop_num} loops for {episode_number=}")
+        print(f"finished running {episode_number=}")
 
     print(
-        f"it took {perf_counter()-start_time:.3f} s to run {TOTAL_EPISODE_NUMBER=} episodes"
+        f"""it took {perf_counter()-start_time:.3f} s to run {TOTAL_EPISODE_NUMBER=} episodes with a total of
+        {loop_num} iterations"""
     )
     _visualize_Q(Q, TERMINAL_STATE)
 
     # Consider manually transposing Q here to aligh it with the image in the assigment for good
-    # Q=Q.T
+    # kind of like Q=Q.T but more complicated as it is a 3d array
+    # _visualize_Q takes care of that
     # https://jochemsoons.medium.com/a-comparison-between-sarsa-and-expected-sarsa-66b931202c75

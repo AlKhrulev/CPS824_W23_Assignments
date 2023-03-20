@@ -163,10 +163,10 @@ def _visualize_Q(Q, terminal_state):
 
     # Need to transpose both arrays to have the
     # terminal state in the right most corner.
-    print("The maximum state-action values for each state:")
+    # print("The maximum state-action values for each state:")
     # the maximum state-action values for each state
-    print(np.max(Q, axis=2).T)
-    print("The actions that maximize state-action values:")
+    # print(np.max(Q, axis=2).T)
+    print("The optimal policy is")
     # the actions that maximize state-action values
     print(pretty_print.T)
 
@@ -193,10 +193,11 @@ if __name__ == "__main__":
     # the discount constant
     GAMMA: final[float] = 0.9
     # the number of episodes to run
-    TOTAL_EPISODE_NUMBER: final[int] = 5000
+    TOTAL_EPISODE_NUMBER: final[int] = 1000
     # the state-value function estimate array
     Q = np.zeros((10, 10, 4), dtype=np.float64)
     start_time = perf_counter()
+    loop_num = 0
 
     for episode_number in range(TOTAL_EPISODE_NUMBER):
         # generate a random initial state as a tuple of r.v. from
@@ -208,7 +209,6 @@ if __name__ == "__main__":
         )
         print(f"the first action is {current_action}")
 
-        loop_num = 0
         while current_state != TERMINAL_STATE:
             # add a state to the set of explored states
             # print(f"debug for {loop_num=}")
@@ -236,12 +236,14 @@ if __name__ == "__main__":
             current_action, current_state = next_action, next_state
             loop_num += 1
 
-        print(f"it took {loop_num} loops for {episode_number=}")
+        print(f"finished running {episode_number=}")
 
     print(
-        f"it took {perf_counter()-start_time:.3f} s to run {TOTAL_EPISODE_NUMBER=} episodes"
+        f"""it took {perf_counter()-start_time:.3f} s to run {TOTAL_EPISODE_NUMBER=} episodes with a total of
+        {loop_num} iterations"""
     )
     _visualize_Q(Q, TERMINAL_STATE)
 
     # Consider manually transposing Q here to aligh it with the image in the assigment for good
-    # Q=Q.T
+    # kind of like Q=Q.T but more complicated as it is a 3d array.
+    # _visualize_Q takes care of that
