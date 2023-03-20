@@ -236,10 +236,10 @@ if __name__ == "__main__":
             current_action, current_state = next_action, next_state
             loop_num += 1
 
-        print(f"finished running {episode_number=}")
+        print(f"finished running {episode_number=}\n")
 
     print(
-        f"""it took {perf_counter()-start_time:.3f} s to run {TOTAL_EPISODE_NUMBER=} episodes with a total of
+        f"""\n\nit took {perf_counter()-start_time:.3f} s to run {TOTAL_EPISODE_NUMBER=} episodes with a total of
         {loop_num} iterations"""
     )
     _visualize_Q(Q, TERMINAL_STATE)
