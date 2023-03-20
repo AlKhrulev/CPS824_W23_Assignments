@@ -1,5 +1,6 @@
 import numpy as np
 from numpy import random
+from time import perf_counter
 
 p1 = 0.8
 p2 = 0.1
@@ -170,7 +171,11 @@ Q = np.zeros((10,10,4))
 # C count of fist time visits to state
 C = np.zeros((10,10,4))
 
-for i in range(30000):
+episodes = 30000
+totalIterations = 0
+start_time = perf_counter()
+
+for i in range(episodes):
     states = []
     actions = []
     rewards = []
@@ -179,6 +184,7 @@ for i in range(30000):
     randPos = random.randint(0, 10, 2)
     s = (randPos[0], randPos[1])
     while True:
+        totalIterations += 1
         # Choose e-greedy action according to Q
         a = chooseEGreedyAction(Q, s)
         env = interactEnvironment(s, a)
@@ -195,6 +201,7 @@ for i in range(30000):
         if reward == 100:
             break
 
+print(f"Q-learning finished in {perf_counter()-start_time:.3f}s with {episodes} episodes, {totalIterations} total iterations")
 printPi(Q)
 # printActionValue(Q)
 # printC(C)

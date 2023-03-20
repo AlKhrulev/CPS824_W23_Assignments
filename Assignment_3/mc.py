@@ -1,5 +1,6 @@
 import numpy as np
 from numpy import random
+from time import perf_counter
 
 p1 = 0.8
 p2 = 0.1
@@ -172,7 +173,11 @@ Q = np.zeros((10,10,4))
 # C count of fist time visits to state
 C = np.zeros((10,10,4))
 
-for i in range(30000):
+episodes = 30000
+totalIterations = 0
+start_time = perf_counter()
+
+for i in range(episodes):
     states = []
     actions = []
     rewards = []
@@ -202,6 +207,7 @@ for i in range(30000):
     G = 0
     # Iterate through episode
     for i in range(len(states)):
+        totalIterations += 1
         ind = len(states) - (i + 1)
         s = states[ind]
         sx = s[0]
@@ -231,6 +237,7 @@ for i in range(30000):
           
             Pi[sx][sy] = newPi
 
+print(f"Monte Carlo finished in {perf_counter()-start_time:.3f}s with {episodes} episodes, {totalIterations} total iterations")
 printPi(Pi)
 # printActionValue(Q)
 # printC(C)
