@@ -170,7 +170,7 @@ Q = np.zeros((10,10,4))
 # C count of fist time visits to state
 C = np.zeros((10,10,4))
 
-for i in range(15000):
+for i in range(30000):
     states = []
     actions = []
     rewards = []
