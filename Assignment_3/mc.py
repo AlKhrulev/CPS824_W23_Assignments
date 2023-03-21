@@ -5,8 +5,8 @@ import numpy as np
 from numpy import random
 from time import perf_counter
 
-p1 = 0.8
-p2 = 0.1
+p1 = float(input("Please enter p1:\n"))
+p2 = float(input("Please enter p2:\n"))
 
 gamma = 0.9
 epsilon = 0.1
