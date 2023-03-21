@@ -1,3 +1,5 @@
+# Alexander Khrulev 500882732
+# Mahan Pandey 500881861
 from __future__ import annotations
 import numpy as np
 from typing import final, Literal
